@@ -74,7 +74,7 @@ def get_args():
     group.add_argument(
         "--jsonl-keys",
         nargs="+",
-        default=["text"],
+        default=["text1"],
         help="space separate listed of keys to extract from jsonl. Defa",
     )
     group.add_argument(
@@ -158,7 +158,7 @@ def yield_from_files(fnames: list, semaphore):
     """
 
     def yielder(fname, semaphore):
-        for f in filter(lambda x: x, lmd.Reader(fname).stream_data()):
+        for f in filter(lambda x: x, lmd.Reader(fname).stream_data(jsonl_key='text1')):
             semaphore.acquire()
             yield f
 

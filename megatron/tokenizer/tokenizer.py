@@ -183,14 +183,19 @@ class _GPT2BPETokenizer(AbstractTokenizer):
 
 
 class SentencePieceTokenizer(AbstractTokenizer):
-    """Designed to Integrate SP's Tokenizer."""
+    """Designed to Integrate SP's Tokenizer.. modified by JHSHIN"""
 
     def __init__(self, vocab_file):
         name = "SPM"
         super().__init__(name)
 
         self.tokenizer = spm.SentencePieceProcessor(model_file=vocab_file)
-        self.eod_id = self.tokenizer.piece_to_id("<|endoftext|>")
+        # <|endoftext|>에서 </s>로 바꿈
+        self.eod_id = self.tokenizer.piece_to_id("</s>")
+        # 다른 control symbol과 다르게 user_defined_symbols로 <|mask|>와 <|reserved_[0-9]|>를 넣음
+        self.mask_id = self.tokenizer.piece_to_id("<|mask|>")
+        # bos를 추가하도록 함
+        self.tokenizer.set_encode_extra_options("bos")
 
     @property
     def vocab_size(self):
@@ -215,6 +220,10 @@ class SentencePieceTokenizer(AbstractTokenizer):
 
     def detokenize(self, token_ids):
         return self.tokenizer.decode(token_ids)
+
+    @property
+    def mask(self):
+        return self.mask_id
 
     @property
     def eod(self):
