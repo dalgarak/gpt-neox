@@ -38,6 +38,8 @@ from megatron.data import indexed_dataset
 from threading import Semaphore
 
 
+_JSONL_KEY = "text1"
+
 class Encoder(object):
     def __init__(self, args):
         self.args = args
@@ -149,7 +151,7 @@ def get_args():
     return args
 
 
-def yield_from_files(fnames: list, semaphore):
+def yield_from_files(fnames: list, semaphore, jsonl_key='text1'):
     """
     Iterator over input documents using lm_dataformat. Should be able to handle jsons / texts /
     other compressed formats. Also filters out empty documents.
@@ -158,7 +160,7 @@ def yield_from_files(fnames: list, semaphore):
     """
 
     def yielder(fname, semaphore):
-        for f in filter(lambda x: x, lmd.Reader(fname).stream_data(jsonl_key='text1')):
+        for f in filter(lambda x: x, lmd.Reader(fname).stream_data(jsonl_key=jsonl_key)):
             semaphore.acquire()
             yield f
 
@@ -170,6 +172,7 @@ def yield_from_files(fnames: list, semaphore):
 
 def main():
     args = get_args()
+    _JSONL_KEY = args.jsonl_keys[0]
     encoder = Encoder(args)
     tokenizer = build_tokenizer(args)
     print(f"Vocab size: {tokenizer.vocab_size}")
@@ -180,7 +183,7 @@ def main():
     semaphore = Semaphore(10000 + args.workers)
 
     # use multiprocessing to iterate over input documents
-    fin = yield_from_files(args.input.split(","), semaphore)
+    fin = yield_from_files(args.input.split(","), semaphore, _JSONL_KEY)
 
     if args.workers > 1:
         pool = multiprocessing.Pool(args.workers, initializer=encoder.initializer)

@@ -194,8 +194,8 @@ class SentencePieceTokenizer(AbstractTokenizer):
         self.eod_id = self.tokenizer.piece_to_id("</s>")
         # 다른 control symbol과 다르게 user_defined_symbols로 <|mask|>와 <|reserved_[0-9]|>를 넣음
         self.mask_id = self.tokenizer.piece_to_id("<|mask|>")
-        # bos를 추가하도록 함
-        self.tokenizer.set_encode_extra_options("bos")
+        # bos를 추가하도록 함 -> 이건 일단 보류. EleutherAI/lm-evaluation-harness package에서는 special tokens를 허용하지 않기 때문.
+        # self.tokenizer.set_encode_extra_options("bos")
 
     @property
     def vocab_size(self):
